@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asad Khaskheli Challenge</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Default Dark Theme Variables */
+            --bg-color: #2b1b17;
+            --bg-gradient-start: rgba(0,0,0,0);
+            --bg-gradient-end: rgba(0,0,0,0.6);
+            --stripe-color-1: #3e2723;
+            --stripe-color-2: #4e342e;
+            
+            --board-bg-1: #5d4037;
+            --board-bg-2: #6d4c41;
+            --board-shadow: rgba(0, 0, 0, 0.7);
+            
+            --hole-bg: #281812;
+            --hole-shadow: rgba(0,0,0,0.8);
+            
+            --panel-bg: #4e342e;
+            --panel-border: #3e2723;
+            --text-primary: #fff8e1;
+            --text-secondary: #ffca28;
+            --accent-color: #ff6f00;
+        }
+
+        [data-theme="light"] {
+            /* Light Theme Variables (Oak/Birch style) */
+            --bg-color: #d7ccc8;
+            --bg-gradient-start: rgba(255,255,255,0.1);
+            --bg-gradient-end: rgba(0,0,0,0.1);
+            --stripe-color-1: #efebe9;
+            --stripe-color-2: #d7ccc8;
+            
+            --board-bg-1: #8d6e63;
+            --board-bg-2: #a1887f;
+            --board-shadow: rgba(0, 0, 0, 0.3);
+            
+            --hole-bg: #5d4037;
+            --hole-shadow: rgba(0,0,0,0.5);
+            
+            --panel-bg: #bcaaa4;
+            --panel-border: #8d6e63;
+            --text-primary: #3e2723;
+            --text-secondary: #5d4037;
+            --accent-color: #8d6e63;
+        }
+
+        /* Rustic Wooden Table Background */
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 50% 50%, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%),
+                repeating-linear-gradient(90deg, var(--stripe-color-1) 0, var(--stripe-color-1) 40px, var(--stripe-color-2) 40px, var(--stripe-color-2) 80px);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            color: var(--text-primary);
+            transition: background 0.5s ease;
+        }
+
+        /* Stylish Title Font */
+        .stylish-title {
+            font-family: 'Cinzel Decorative', cursive;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+        }
+
+        /* Realistic Wood Board Texture */
+        .wood-board {
+            background-color: var(--board-bg-1);
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(255,255,255,0.15), transparent 70%),
+                repeating-linear-gradient(45deg, rgba(0,0,0,0.05) 0px, rgba(0,0,0,0.05) 2px, transparent 2px, transparent 4px),
+                linear-gradient(to bottom, var(--board-bg-2), var(--stripe-color-1));
+            box-shadow: 
+                0 25px 50px -12px var(--board-shadow),
+                inset 0 2px 3px rgba(255,255,255,0.2),
+                inset 0 -2px 5px rgba(0,0,0,0.4);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.5s ease;
+        }
+
+        /* The Drilled Holes */
+        .hole {
+            background: var(--hole-bg);
+            box-shadow: inset 3px 3px 6px var(--hole-shadow), inset -1px -1px 2px rgba(255,255,255,0.1);
+            border-radius: 50%;
+        }
+
+        /* Marble Styles */
+        .peg {
+            border-radius: 50%;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.1s ease, filter 0.2s, box-shadow 0.2s;
+            box-shadow: 
+                3px 5px 7px rgba(0,0,0,0.4), 
+                inset -4px -4px 8px rgba(0,0,0,0.4);
+            z-index: 1;
+        }
+
+        .peg::after {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: 20%;
+            width: 25%;
+            height: 25%;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 70%);
+            filter: blur(0.5px);
+        }
+        
+        .peg:active {
+            transform: scale(0.9);
+        }
+
+        .peg-selected {
+            filter: brightness(1.3);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.6), 4px 6px 8px rgba(0,0,0,0.5);
+            transform: scale(1.1);
+            z-index: 20;
+            border: 2px solid rgba(255,255,255,0.4);
+        }
+
+        /* Colors */
+        .peg-red { background: radial-gradient(circle at 35% 35%, #ff5252, #b71c1c); }
+        .peg-blue { background: radial-gradient(circle at 35% 35%, #448aff, #0d47a1); }
+        .peg-green { background: radial-gradient(circle at 35% 35%, #69f0ae, #1b5e20); }
+        .peg-yellow { background: radial-gradient(circle at 35% 35%, #ffff00, #fbc02d, #f57f17); }
+
+        /* Hint Styles */
+        .hint-source {
+            box-shadow: 0 0 15px #d500f9, inset 0 0 10px #d500f9;
+            filter: brightness(1.2);
+            animation: pulse-purple 1s infinite;
+        }
+        .hint-dest {
+            background-color: rgba(213, 0, 249, 0.3);
+            box-shadow: 0 0 15px #d500f9;
+            animation: pulse-purple 1s infinite;
+        }
+
+        @keyframes pulse-purple {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Valid Move Indicator */
+        .valid-move {
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+            animation: pulse-white 1.5s infinite;
+            border: 1px dashed rgba(255,255,255,0.4);
+        }
+
+        @keyframes pulse-white {
+            0% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.9; }
+            100% { transform: scale(1); opacity: 0.5; }
+        }
+
+        /* UI Panel wood texture */
+        .wood-panel {
+            background-color: var(--panel-bg);
+            background-image: linear-gradient(to bottom, var(--panel-bg), var(--stripe-color-1));
+            border: 3px solid var(--panel-border);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.2);
+            transition: all 0.5s ease;
+        }
+        
+        /* Modal Overlay */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px) scale(0.9); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen select-none">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        // --- Layouts ---
+        const LAYOUTS = {
+            english: {
+                name: "English (32 Pegs)",
+                grid: [
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 2, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1],
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                ]
+            },
+            european: {
+                name: "European (36 Pegs)",
+                grid: [
+                    [0, 0, 1, 1, 1, 0, 0],
+                    [0, 1, 1, 1, 1, 1, 0],
+                    [1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 2, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1],
+                    [0, 1, 1, 1, 1, 1, 0],
+                    [0, 0, 1, 1, 1, 0, 0],
+                ]
+            },
+            german: {
+                name: "German (44 Pegs)",
+                grid: [
+                    [0, 0, 0, 1, 1, 1, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 0, 0, 0],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 2, 1, 1, 1, 1],
+                    [1, 1, 1, 1, 1, 1, 1, 1, 1],
+                    [0, 0, 0, 1, 1, 1, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 0, 0, 0],
+                    [0, 0, 0, 1, 1, 1, 0, 0, 0],
+                ]
+            }
+        };
+
+        const COLORS = ['peg-red', 'peg-yellow', 'peg-blue', 'peg-green'];
+
+        function App() {
+            const [mode, setMode] = React.useState('english');
+            const [theme, setTheme] = React.useState('dark');
+            const [board, setBoard] = React.useState([]);
+            const [selected, setSelected] = React.useState(null);
+            const [gameState, setGameState] = React.useState('playing'); // playing, won, lost
+            const [message, setMessage] = React.useState('');
+            const [score, setScore] = React.useState(0);
+            const [history, setHistory] = React.useState([]);
+            const [hint, setHint] = React.useState(null); // { from: {r,c}, to: {r,c} }
+            const [timer, setTimer] = React.useState(0);
+            const timerRef = React.useRef(null);
+
+            // Apply theme to body
+            React.useEffect(() => {
+                document.body.setAttribute('data-theme', theme);
+            }, [theme]);
+
+            // Initialize
+            React.useEffect(() => {
+                resetGame(mode);
+                return () => clearInterval(timerRef.current);
+            }, [mode]);
+
+            const startTimer = () => {
+                clearInterval(timerRef.current);
+                setTimer(0);
+                timerRef.current = setInterval(() => {
+                    setTimer(t => t + 1);
+                }, 1000);
+            };
+
+            const stopTimer = () => {
+                clearInterval(timerRef.current);
+            };
+
+            const formatTime = (s) => {
+                const min = Math.floor(s / 60);
+                const sec = s % 60;
+                return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+            };
+
+            const toggleTheme = () => {
+                setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+            };
+
+            const resetGame = (currentMode = mode) => {
+                const layout = LAYOUTS[currentMode].grid;
+                let pegCount = 0;
+                const newBoard = layout.map(row => 
+                    row.map(cell => {
+                        if (cell === 1) {
+                            pegCount++;
+                            return { 
+                                type: 1, 
+                                color: COLORS[Math.floor(Math.random() * COLORS.length)] 
+                            };
+                        }
+                        return { type: cell, color: null };
+                    })
+                );
+                setBoard(newBoard);
+                setSelected(null);
+                setHint(null);
+                setGameState('playing');
+                setMessage('Good Luck! Start moving.');
+                setScore(pegCount);
+                setHistory([]);
+                startTimer();
+            };
+
+            const isValidPos = (r, c) => {
+                return r >= 0 && r < board.length && c >= 0 && c < board[0].length && board[r][c].type !== 0;
+            };
+
+            const getValidMoves = (r, c, currentBoard = board) => {
+                const moves = [];
+                const directions = [
+                    { dr: -2, dc: 0, mr: -1, mc: 0 },
+                    { dr: 2, dc: 0, mr: 1, mc: 0 },
+                    { dr: 0, dc: -2, mr: 0, mc: -1 },
+                    { dr: 0, dc: 2, mr: 0, mc: 1 },
+                ];
+
+                directions.forEach(({ dr, dc, mr, mc }) => {
+                    const nr = r + dr;
+                    const nc = c + dc;
+                    const midR = r + mr;
+                    const midC = c + mc;
+
+                    if (isValidPos(nr, nc) && isValidPos(midR, midC)) {
+                        if (currentBoard[nr][nc].type === 2 && currentBoard[midR][midC].type === 1) {
+                            moves.push({ r: nr, c: nc });
+                        }
+                    }
+                });
+                return moves;
+            };
+
+            const checkGameStatus = (currentBoard) => {
+                let pegsCount = 0;
+                let movesAvailable = false;
+
+                for (let r = 0; r < currentBoard.length; r++) {
+                    for (let c = 0; c < currentBoard[0].length; c++) {
+                        if (currentBoard[r][c].type === 1) {
+                            pegsCount++;
+                            if (getValidMoves(r, c, currentBoard).length > 0) {
+                                movesAvailable = true;
+                            }
+                        }
+                    }
+                }
+
+                setScore(pegsCount);
+
+                if (pegsCount === 1) {
+                    stopTimer();
+                    setGameState('won');
+                    setMessage('CHALLENGE COMPLETED!');
+                } else if (!movesAvailable) {
+                    stopTimer();
+                    setGameState('lost');
+                    setMessage('No more moves possible.');
+                }
+            };
+
+            const handlePegClick = (r, c) => {
+                if (gameState !== 'playing') return;
+                setHint(null); // Clear hint on interaction
+                
+                if (selected && selected.r === r && selected.c === c) {
+                    setSelected(null);
+                    return;
+                }
+
+                const moves = getValidMoves(r, c);
+                if (moves.length > 0) {
+                    setSelected({ r, c, validMoves: moves });
+                    setMessage('Pick a destination.');
+                } else {
+                    setMessage('No moves for this peg.');
+                    setTimeout(() => setMessage('Keep playing...'), 1000);
+                }
+            };
+
+            const handleHoleClick = (r, c) => {
+                if (!selected || gameState !== 'playing') return;
+
+                const move = selected.validMoves.find(m => m.r === r && m.c === c);
+                
+                if (move) {
+                    executeMove(selected.r, selected.c, r, c);
+                } else {
+                    setSelected(null);
+                    setHint(null);
+                }
+            };
+
+            const executeMove = (r1, c1, r2, c2) => {
+                setHistory(prev => [...prev, JSON.parse(JSON.stringify(board))]);
+
+                const newBoard = [...board.map(row => [...row])];
+                const midR = (r1 + r2) / 2;
+                const midC = (c1 + c2) / 2;
+
+                newBoard[r2][c2] = { ...newBoard[r1][c1], type: 1 };
+                newBoard[r1][c1] = { type: 2, color: null };
+                newBoard[midR][midC] = { type: 2, color: null };
+
+                setBoard(newBoard);
+                setSelected(null);
+                setHint(null);
+                
+                checkGameStatus(newBoard);
+            };
+
+            const undoMove = () => {
+                if (history.length === 0) return;
+                const previousBoard = history[history.length - 1];
+                setBoard(previousBoard);
+                setHistory(prev => prev.slice(0, -1));
+                setGameState('playing');
+                setSelected(null);
+                setHint(null);
+                
+                // Recalculate score
+                let count = 0;
+                previousBoard.forEach(row => row.forEach(cell => { if(cell.type === 1) count++; }));
+                setScore(count);
+                setMessage('Move undone.');
+            };
+
+            const showSmartHint = () => {
+                if (gameState !== 'playing') return;
+                
+                const allMoves = [];
+                for(let r=0; r < board.length; r++){
+                    for(let c=0; c < board[0].length; c++){
+                        if(board[r][c].type === 1) {
+                            const moves = getValidMoves(r, c);
+                            moves.forEach(m => {
+                                allMoves.push({ from: {r,c}, to: m });
+                            });
+                        }
+                    }
+                }
+
+                if (allMoves.length > 0) {
+                    // Pick random move
+                    const randomMove = allMoves[Math.floor(Math.random() * allMoves.length)];
+                    setHint(randomMove);
+                    setMessage("Try this move!");
+                    setTimeout(() => {
+                        // Optional: clear hint automatically after 3s? 
+                        // setHint(null); 
+                    }, 3000);
+                }
+            };
+
+            // Calculate Grid Scale for larger boards
+            // Standard 7x7 fits well with current sizing. 9x9 needs to be slightly smaller on small screens.
+            const isLargeBoard = board.length > 7;
+            const cellSizeClass = isLargeBoard 
+                ? "w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10" 
+                : "w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12";
+
+            return (
+                <div className="flex flex-col items-center gap-6 p-4 w-full max-w-lg">
+                    
+                    {/* Header Panel */}
+                    <div className="wood-panel w-full px-6 py-4 rounded-xl flex flex-col items-center shadow-2xl relative">
+                        {/* Title Badge */}
+                        <div className="absolute -top-5 bg-[var(--accent-color)] px-4 py-2 rounded shadow-lg border border-[var(--text-secondary)]">
+                             <h1 className="text-xl sm:text-2xl font-bold uppercase tracking-widest text-white drop-shadow-md stylish-title text-center">
+                                 Asad Khaskheli Challenge
+                             </h1>
+                        </div>
+                        
+                        {/* Stats Row */}
+                        <div className="mt-8 flex justify-between w-full items-end border-b border-[var(--text-secondary)] pb-2 mb-2 opacity-80">
+                            <div className="text-center">
+                                <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider font-bold">Remaining</div>
+                                <div className="text-4xl font-black text-[var(--text-primary)] drop-shadow-sm leading-none">{score}</div>
+                            </div>
+                            
+                            {/* Theme Toggle Button */}
+                            <button 
+                                onClick={toggleTheme}
+                                className="p-2 rounded-full hover:bg-black/10 transition-colors"
+                                title="Toggle Dark/Light Mode"
+                            >
+                                {theme === 'dark' ? (
+                                    <span className="text-2xl">☀️</span> 
+                                ) : (
+                                    <span className="text-2xl">🌙</span>
+                                )}
+                            </button>
+
+                            <div className="text-center">
+                                <div className="text-xs text-[var(--text-secondary)] uppercase tracking-wider font-bold">Time</div>
+                                <div className="text-2xl font-mono text-[var(--text-primary)]">{formatTime(timer)}</div>
+                            </div>
+                        </div>
+
+                        {/* Controls Row */}
+                        <div className="flex justify-between items-center w-full gap-2">
+                            <select 
+                                value={mode} 
+                                onChange={(e) => setMode(e.target.value)}
+                                className="bg-black/20 text-[var(--text-primary)] text-sm border border-[var(--text-secondary)] rounded px-2 py-1 focus:outline-none cursor-pointer font-bold"
+                            >
+                                {Object.keys(LAYOUTS).map(k => (
+                                    <option key={k} value={k}>{LAYOUTS[k].name}</option>
+                                ))}
+                            </select>
+                            <div className="text-xs text-[var(--text-secondary)] font-medium italic truncate">{message}</div>
+                        </div>
+                    </div>
+
+                    {/* Game Board */}
+                    <div className="wood-board p-4 relative select-none shadow-2xl">
+                        <div 
+                            className="grid gap-2"
+                            style={{ 
+                                gridTemplateColumns: `repeat(${board[0]?.length || 7}, minmax(0, 1fr))` 
+                            }}
+                        >
+                            {board.map((row, r) => (
+                                row.map((cell, c) => {
+                                    // Hidden cells
+                                    if (cell.type === 0) {
+                                        return <div key={`${r}-${c}`} className={`${cellSizeClass} opacity-0 pointer-events-none`}></div>;
+                                    }
+
+                                    const isSelected = selected && selected.r === r && selected.c === c;
+                                    const isValidMoveDest = selected && selected.validMoves.some(m => m.r === r && m.c === c);
+                                    
+                                    // Hint Logic
+                                    const isHintSource = hint && hint.from.r === r && hint.from.c === c;
+                                    const isHintDest = hint && hint.to.r === r && hint.to.c === c;
+
+                                    return (
+                                        <div 
+                                            key={`${r}-${c}`}
+                                            className={`
+                                                ${cellSizeClass}
+                                                relative flex items-center justify-center
+                                                ${cell.type === 2 ? 'hole' : ''}
+                                                ${isValidMoveDest ? 'valid-move cursor-pointer' : ''}
+                                                ${isHintDest ? 'hint-dest' : ''}
+                                            `}
+                                            onClick={() => {
+                                                if (cell.type === 1) handlePegClick(r, c);
+                                                if (cell.type === 2) handleHoleClick(r, c);
+                                            }}
+                                        >
+                                            {cell.type === 1 && (
+                                                <div className={`
+                                                    w-full h-full peg 
+                                                    ${cell.color} 
+                                                    ${isSelected ? 'peg-selected' : ''}
+                                                    ${isHintSource ? 'hint-source' : ''}
+                                                `}></div>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Controls Footer */}
+                    <div className="flex gap-3 w-full justify-center">
+                        <button 
+                            onClick={undoMove}
+                            disabled={history.length === 0 || gameState === 'won'}
+                            className={`flex-1 py-3 rounded-lg font-bold text-white shadow-lg border-b-4 active:border-b-0 active:translate-y-1 transition-all
+                                ${history.length === 0 
+                                    ? 'bg-stone-600 border-stone-800 opacity-50 cursor-not-allowed' 
+                                    : 'bg-[var(--accent-color)] border-[var(--text-secondary)] hover:brightness-110'
+                                }`}
+                        >
+                            UNDO
+                        </button>
+                        
+                        <button 
+                            onClick={showSmartHint}
+                            disabled={gameState !== 'playing'}
+                            className="flex-1 py-3 rounded-lg font-bold text-white bg-purple-700 border-purple-900 shadow-lg border-b-4 hover:bg-purple-600 active:border-b-0 active:translate-y-1 transition-all disabled:opacity-50"
+                        >
+                            HINT
+                        </button>
+
+                        <button 
+                            onClick={() => resetGame()}
+                            className="flex-1 py-3 rounded-lg font-bold text-white bg-red-700 border-red-900 shadow-lg border-b-4 hover:bg-red-600 active:border-b-0 active:translate-y-1 transition-all"
+                        >
+                            RESET
+                        </button>
+                    </div>
+
+                    {/* Game Over / Win Modal */}
+                    {(gameState === 'won' || gameState === 'lost') && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
+                            <div className="wood-panel p-8 rounded-2xl max-w-sm w-full text-center modal-content shadow-2xl border-4 border-[var(--accent-color)]">
+                                <h2 className={`text-4xl font-black mb-2 drop-shadow-lg stylish-title ${gameState === 'won' ? 'text-green-400' : 'text-red-400'}`}>
+                                    {gameState === 'won' ? 'VICTORY!' : 'GAME OVER'}
+                                </h2>
+                                <p className="text-[var(--text-primary)] text-lg mb-6 opacity-90">
+                                    {gameState === 'won' 
+                                        ? score === 1 ? "Perfect! You are a true Master." : "Great job! Can you reduce it to 1?"
+                                        : "No moves left. Don't give up!"}
+                                </p>
+                                
+                                <div className="grid grid-cols-2 gap-4 mb-8 bg-black/20 p-4 rounded-lg">
+                                    <div className="text-center">
+                                        <div className="text-xs uppercase text-[var(--text-secondary)]">Pegs Left</div>
+                                        <div className="text-3xl font-bold text-[var(--text-primary)]">{score}</div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-xs uppercase text-[var(--text-secondary)]">Time</div>
+                                        <div className="text-3xl font-bold text-[var(--text-primary)]">{formatTime(timer)}</div>
+                                    </div>
+                                </div>
+
+                                <button 
+                                    onClick={() => resetGame()}
+                                    className="w-full py-4 rounded-xl font-bold text-xl text-white bg-green-600 hover:bg-green-500 shadow-lg border-b-4 border-green-800 active:border-b-0 active:translate-y-1 transition-all"
+                                >
+                                    PLAY AGAIN
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
